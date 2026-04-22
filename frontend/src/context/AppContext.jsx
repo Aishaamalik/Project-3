@@ -1,35 +1,89 @@
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import { useAuth } from './AuthContext'
 
 const AppContext = createContext(null)
 
-const DEMO_IMAGES = [
-  { id:1,  url:'https://picsum.photos/seed/moon1/512/512',   prompt:'Crescent moon over a misty ancient forest at midnight',        style:'cinematic',   size:'512x512',  createdAt:new Date(Date.now()-3600000*2),  rating:5, favorite:true,  tags:['moon','forest','night'],    collection:'Lunar Dreams' },
-  { id:2,  url:'https://picsum.photos/seed/lunar2/512/512',  prompt:'Lunar goddess standing on silver clouds under a full moon',    style:'digital art', size:'512x512',  createdAt:new Date(Date.now()-3600000*5),  rating:4, favorite:false, tags:['goddess','clouds','moon'],  collection:'Lunar Dreams' },
-  { id:3,  url:'https://picsum.photos/seed/night3/512/768',  prompt:'Moonlit ocean with bioluminescent waves and star reflections', style:'realistic',   size:'512x768',  createdAt:new Date(Date.now()-3600000*8),  rating:5, favorite:true,  tags:['ocean','stars','night'],    collection:'Ocean Nights' },
-  { id:4,  url:'https://picsum.photos/seed/wolf4/512/512',   prompt:'Silver wolf howling at a blood moon in a snowy tundra',       style:'anime',       size:'512x512',  createdAt:new Date(Date.now()-3600000*12), rating:3, favorite:false, tags:['wolf','moon','snow'],       collection:null },
-  { id:5,  url:'https://picsum.photos/seed/castle5/512/512', prompt:'Gothic castle silhouette against a giant harvest moon',       style:'cinematic',   size:'512x512',  createdAt:new Date(Date.now()-3600000*20), rating:4, favorite:true,  tags:['castle','gothic','moon'],   collection:'Lunar Dreams' },
-  { id:6,  url:'https://picsum.photos/seed/space6/512/512',  prompt:'Astronaut floating near the moon surface with Earth in view', style:'realistic',   size:'512x512',  createdAt:new Date(Date.now()-3600000*28), rating:5, favorite:false, tags:['space','astronaut','earth'],collection:'Space Odyssey' },
-  { id:7,  url:'https://picsum.photos/seed/temple7/512/512', prompt:'Ancient moon temple with glowing runes and moonflowers',      style:'digital art', size:'512x512',  createdAt:new Date(Date.now()-3600000*36), rating:4, favorite:true,  tags:['temple','runes','magic'],   collection:'Lunar Dreams' },
-  { id:8,  url:'https://picsum.photos/seed/eclipse8/512/512',prompt:'Total solar eclipse over a mystical stone circle',            style:'cinematic',   size:'512x512',  createdAt:new Date(Date.now()-3600000*48), rating:5, favorite:false, tags:['eclipse','stone','mystic'], collection:'Space Odyssey' },
-]
+const DEFAULT_SETTINGS = {
+  defaultStyle: 'cinematic',
+  defaultSize: '512x512',
+  autoSave: true,
+  showNSFWFilter: true,
+  quality: 80,
+  negativePrompt: '',
+}
 
-const DEMO_COLLECTIONS = [
-  { id:'c1', name:'Lunar Dreams',  cover:'https://picsum.photos/seed/moon1/200/200',  count:4, createdAt:new Date(Date.now()-86400000*3) },
-  { id:'c2', name:'Ocean Nights',  cover:'https://picsum.photos/seed/night3/200/200', count:1, createdAt:new Date(Date.now()-86400000*2) },
-  { id:'c3', name:'Space Odyssey', cover:'https://picsum.photos/seed/space6/200/200', count:2, createdAt:new Date(Date.now()-86400000*1) },
-]
+const keyFor = (userId, suffix) => `dreamcanvas_${suffix}_${userId}`
+
+const parseDateValue = (value) => {
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed
+}
 
 export function AppProvider({ children }) {
-  const [history, setHistory]         = useState(DEMO_IMAGES)
-  const [collections, setCollections] = useState(DEMO_COLLECTIONS)
-  const [settings, setSettings]       = useState({
-    defaultStyle: 'cinematic',
-    defaultSize:  '512x512',
-    autoSave:     true,
-    showNSFWFilter: true,
-    quality:      80,
-    negativePrompt: '',
-  })
+  const { user } = useAuth()
+  const [history, setHistory] = useState([])
+  const [collections, setCollections] = useState([])
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS)
+
+  useEffect(() => {
+    if (!user?.id) {
+      setHistory([])
+      setCollections([])
+      setSettings(DEFAULT_SETTINGS)
+      return
+    }
+
+    const savedHistory = localStorage.getItem(keyFor(user.id, 'history'))
+    const savedCollections = localStorage.getItem(keyFor(user.id, 'collections'))
+    const savedSettings = localStorage.getItem(keyFor(user.id, 'settings'))
+
+    try {
+      const parsedHistory = savedHistory ? JSON.parse(savedHistory) : []
+      setHistory(
+        Array.isArray(parsedHistory)
+          ? parsedHistory.map((item) => ({
+              ...item,
+              createdAt: parseDateValue(item.createdAt),
+              rating: item.rating || 0,
+              favorite: Boolean(item.favorite),
+              tags: Array.isArray(item.tags) ? item.tags : [],
+              collection: item.collection || null,
+            }))
+          : [],
+      )
+    } catch {
+      setHistory([])
+    }
+
+    try {
+      const parsedCollections = savedCollections ? JSON.parse(savedCollections) : []
+      setCollections(Array.isArray(parsedCollections) ? parsedCollections : [])
+    } catch {
+      setCollections([])
+    }
+
+    try {
+      const parsedSettings = savedSettings ? JSON.parse(savedSettings) : {}
+      setSettings({ ...DEFAULT_SETTINGS, ...parsedSettings })
+    } catch {
+      setSettings(DEFAULT_SETTINGS)
+    }
+  }, [user?.id])
+
+  useEffect(() => {
+    if (!user?.id) return
+    localStorage.setItem(keyFor(user.id, 'history'), JSON.stringify(history))
+  }, [history, user?.id])
+
+  useEffect(() => {
+    if (!user?.id) return
+    localStorage.setItem(keyFor(user.id, 'collections'), JSON.stringify(collections))
+  }, [collections, user?.id])
+
+  useEffect(() => {
+    if (!user?.id) return
+    localStorage.setItem(keyFor(user.id, 'settings'), JSON.stringify(settings))
+  }, [settings, user?.id])
 
   const addToHistory = useCallback((item) =>
     setHistory(prev => [{ ...item, rating:0, favorite:false, tags:[], collection:null }, ...prev]), [])
@@ -61,10 +115,14 @@ export function AppProvider({ children }) {
   }, [])
 
   const deleteCollection = useCallback((id) => {
-    setCollections(prev => prev.filter(c => c.id!==id))
-    setHistory(prev => prev.map(img => img.collection===collections.find(c=>c.id===id)?.name
-      ? {...img, collection:null} : img))
-  }, [collections])
+    setCollections((prev) => {
+      const target = prev.find((c) => c.id === id)
+      if (target?.name) {
+        setHistory((images) => images.map((img) => (img.collection === target.name ? { ...img, collection: null } : img)))
+      }
+      return prev.filter((c) => c.id !== id)
+    })
+  }, [])
 
   const updateSettings = useCallback((patch) =>
     setSettings(prev => ({...prev, ...patch})), [])
