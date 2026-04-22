@@ -13,7 +13,7 @@ router = APIRouter(tags=["Image"])
 
 HF_MODEL = "black-forest-labs/FLUX.1-dev"
 HF_PROVIDER = "wavespeed"
-SUPPORTED_STYLES = {"realistic", "anime", "digital art"}
+SUPPORTED_STYLES = {"realistic", "anime", "digital art", "cinematic"}
 SUPPORTED_SIZES = {"256x256", "512x512", "1024x1024"}
 
 

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { Wand2, Layers, ChevronDown, ChevronUp } from 'lucide-react'
 import { useApp } from '../context/AppContext'
+import { generateImage } from '../services/api'
 import PromptInput from '../components/generator/PromptInput'
 import StyleSelector from '../components/generator/StyleSelector'
 import SizeSelector from '../components/generator/SizeSelector'
@@ -66,19 +67,35 @@ export default function GeneratorPage() {
     setResults([])
 
     const count = Math.min(batchCount, 4)
-    await new Promise(r => setTimeout(r, 1500 + count * 400))
 
-    const [w, h] = size.split('x')
-    const newImages = Array.from({ length:count }, (_, i) => {
-      const s = (seed || prompt.replace(/\s+/g,'').slice(0,8)) + Date.now() + i
-      return { id:Date.now()+i, url:`https://picsum.photos/seed/${s}/${w}/${h}`, prompt, style, size, createdAt:new Date() }
-    })
+    try {
+      const requests = Array.from({ length: count }, () =>
+        generateImage({ prompt, style, size })
+      )
+      const responses = await Promise.all(requests)
 
-    setResults(newImages)
-    newImages.forEach(img => addToHistory(img))
-    setLoading(false)
-    toast.success(count > 1 ? `${count} images generated!` : 'Image generated!')
-  }, [prompt, style, size, batchCount, seed, addToHistory])
+      const newImages = responses.map((response, index) => ({
+        id: Date.now() + index,
+        url: response.image_url,
+        prompt,
+        style,
+        size,
+        createdAt: new Date(),
+      }))
+
+      setResults(newImages)
+      newImages.forEach((img) => addToHistory(img))
+      toast.success(count > 1 ? `${count} images generated!` : 'Image generated!')
+    } catch (error) {
+      const message =
+        error?.response?.data?.detail ||
+        error?.message ||
+        'Failed to generate image. Please try again.'
+      toast.error(message)
+    } finally {
+      setLoading(false)
+    }
+  }, [prompt, style, size, batchCount, addToHistory])
 
   const handleKeyDown = (e) => {
     if (e.key==='Enter' && (e.metaKey || e.ctrlKey)) handleGenerate()
