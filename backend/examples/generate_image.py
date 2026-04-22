@@ -1,28 +1,36 @@
 import os
 from pathlib import Path
 
-from huggingface_hub import InferenceClient
 from dotenv import load_dotenv
+import requests
 
 
 def main() -> None:
     load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env")
-    token = os.environ.get("HF_TOKEN")
-    if not token:
-        raise RuntimeError("HF_TOKEN is not set. Add it to your environment before running.")
+    account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "").strip()
+    token = os.environ.get("CLOUDFLARE_API_TOKEN", "").strip()
+    model = os.environ.get("CLOUDFLARE_AI_MODEL", "@cf/black-forest-labs/flux-1-schnell").strip()
+    if not account_id or not token:
+        raise RuntimeError("CLOUDFLARE_ACCOUNT_ID or CLOUDFLARE_API_TOKEN is not set.")
 
-    client = InferenceClient(
-        provider="wavespeed",
-        api_key=token,
+    response = requests.post(
+        f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}",
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "prompt": "A futuristic city skyline at sunset",
+            "width": 1024,
+            "height": 1024,
+        },
+        timeout=90,
     )
-
-    image = client.text_to_image(
-        "A futuristic city skyline at sunset",
-        model="black-forest-labs/FLUX.1-dev",
-    )
+    response.raise_for_status()
 
     output_path = "generated_city.png"
-    image.save(output_path)
+    with open(output_path, "wb") as f:
+        f.write(response.content)
     print(f"Saved image to {output_path}")
 
 

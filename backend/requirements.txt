@@ -3,5 +3,3 @@ uvicorn
 python-dotenv
 requests
 openai
-huggingface_hub
-pillow
