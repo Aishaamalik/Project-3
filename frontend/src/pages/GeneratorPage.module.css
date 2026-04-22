@@ -102,6 +102,47 @@
 /* Batch grid */
 .batchGrid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
 
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.58);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modalCard {
+  width: min(100%, 460px);
+  border-radius: 16px;
+  padding: 1.1rem;
+  background: #1f2a2b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.modalBtn,
+.modalGhostBtn {
+  width: 100%;
+  border-radius: 10px;
+  padding: 0.72rem 0.9rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.modalBtn {
+  margin-top: 1rem;
+  border: none;
+  background: #a27b5c;
+  color: #fff;
+}
+
+.modalGhostBtn {
+  margin-top: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: #f4f0e8;
+}
+
 @media (max-width:640px) {
   .page { padding:32px 16px 64px; }
   .card { padding:20px; }

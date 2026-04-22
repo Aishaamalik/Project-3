@@ -2,7 +2,9 @@ import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { Wand2, Layers, ChevronDown, ChevronUp } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { useAuth } from '../context/AuthContext'
 import { generateImage } from '../services/api'
 import PromptInput from '../components/generator/PromptInput'
 import StyleSelector from '../components/generator/StyleSelector'
@@ -38,6 +40,8 @@ const itemVariants = {
 
 export default function GeneratorPage() {
   const { addToHistory, settings } = useApp()
+  const { refreshMe } = useAuth()
+  const navigate = useNavigate()
   const [prompt, setPrompt]       = useState('')
   const [style, setStyle]         = useState(settings.defaultStyle || 'cinematic')
   const [size, setSize]           = useState(settings.defaultSize  || '512x512')
@@ -47,6 +51,7 @@ export default function GeneratorPage() {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [negPrompt, setNegPrompt] = useState(settings.negativePrompt || '')
   const [seed, setSeed]           = useState('')
+  const [showOutOfTokens, setShowOutOfTokens] = useState(false)
 
   // Sync settings defaults
   useEffect(() => {
@@ -85,17 +90,21 @@ export default function GeneratorPage() {
 
       setResults(newImages)
       newImages.forEach((img) => addToHistory(img))
+      if (typeof responses[responses.length - 1]?.tokens_left === 'number') {
+        await refreshMe()
+      }
       toast.success(count > 1 ? `${count} images generated!` : 'Image generated!')
     } catch (error) {
-      const message =
-        error?.response?.data?.detail ||
-        error?.message ||
-        'Failed to generate image. Please try again.'
+      const detail = error?.response?.data?.detail
+      if (error?.response?.status === 402 || detail?.code === 'INSUFFICIENT_TOKENS') {
+        setShowOutOfTokens(true)
+      }
+      const message = detail?.message || detail || error?.message || 'Failed to generate image. Please try again.'
       toast.error(message)
     } finally {
       setLoading(false)
     }
-  }, [prompt, style, size, batchCount, addToHistory])
+  }, [prompt, style, size, batchCount, addToHistory, refreshMe])
 
   const handleKeyDown = (e) => {
     if (e.key==='Enter' && (e.metaKey || e.ctrlKey)) handleGenerate()
@@ -210,6 +219,29 @@ export default function GeneratorPage() {
           )}
         </AnimatePresence>
       </div>
+      <AnimatePresence>
+        {showOutOfTokens && (
+          <motion.div className={styles.modalOverlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div className={styles.modalCard} initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}>
+              <h3>Enjoying the app?</h3>
+              <p>Continue creating amazing images by getting more tokens.</p>
+              <button
+                type="button"
+                className={styles.modalBtn}
+                onClick={() => {
+                  setShowOutOfTokens(false)
+                  navigate('/packages')
+                }}
+              >
+                Check Packages
+              </button>
+              <button type="button" className={styles.modalGhostBtn} onClick={() => setShowOutOfTokens(false)}>
+                Close
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   )
 }

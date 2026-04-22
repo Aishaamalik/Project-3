@@ -3,9 +3,11 @@ import io
 import os
 
 from dotenv import load_dotenv
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from huggingface_hub import InferenceClient
 from pydantic import BaseModel, field_validator
+from app.auth import get_current_user
+from app.db import get_db
 
 load_dotenv()
 
@@ -15,6 +17,7 @@ HF_MODEL = "black-forest-labs/FLUX.1-dev"
 HF_PROVIDER = "wavespeed"
 SUPPORTED_STYLES = {"realistic", "anime", "digital art", "cinematic"}
 SUPPORTED_SIZES = {"256x256", "512x512", "1024x1024"}
+IMAGE_COST = 10
 
 
 class ImageRequest(BaseModel):
@@ -47,10 +50,22 @@ class ImageRequest(BaseModel):
 
 class ImageResponse(BaseModel):
     image_url: str
+    tokens_left: int
 
 
 @router.post("/generate-image", response_model=ImageResponse)
-def generate_image(payload: ImageRequest) -> ImageResponse:
+def generate_image(payload: ImageRequest, user=Depends(get_current_user)) -> ImageResponse:
+    with get_db() as conn:
+        row = conn.execute("SELECT tokens FROM users WHERE id = ?", (user["id"],)).fetchone()
+    if not row or row["tokens"] < IMAGE_COST:
+        raise HTTPException(
+            status_code=402,
+            detail={
+                "code": "INSUFFICIENT_TOKENS",
+                "message": "Enjoying the app? Continue creating amazing images by getting more tokens.",
+            },
+        )
+
     api_key = os.getenv("HUGGINGFACE_API_KEY", "").strip() or os.getenv("HF_TOKEN", "").strip()
     if not api_key:
         raise HTTPException(status_code=500, detail="HUGGINGFACE_API_KEY or HF_TOKEN is missing in environment.")
@@ -75,6 +90,22 @@ def generate_image(payload: ImageRequest) -> ImageResponse:
     image_bytes = io.BytesIO()
     image.save(image_bytes, format="PNG")
     image_base64 = base64.b64encode(image_bytes.getvalue()).decode("utf-8")
+    with get_db() as conn:
+        updated = conn.execute(
+            "UPDATE users SET tokens = tokens - ? WHERE id = ? AND tokens >= ?",
+            (IMAGE_COST, user["id"], IMAGE_COST),
+        )
+        conn.commit()
+        if updated.rowcount == 0:
+            raise HTTPException(
+                status_code=402,
+                detail={
+                    "code": "INSUFFICIENT_TOKENS",
+                    "message": "Enjoying the app? Continue creating amazing images by getting more tokens.",
+                },
+            )
+        current_tokens = conn.execute("SELECT tokens FROM users WHERE id = ?", (user["id"],)).fetchone()["tokens"]
+
     image_url = f"data:image/png;base64,{image_base64}"
-    return ImageResponse(image_url=image_url)
+    return ImageResponse(image_url=image_url, tokens_left=current_tokens)
 

@@ -1,6 +1,7 @@
 
 import { useMemo, useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import toast from 'react-hot-toast'
 import {
   ArrowRight, Bot, Gauge, ImagePlus, Layers3, MoveRight,
   Sparkles, WandSparkles, Zap, X, ChevronRight, Star,
@@ -133,11 +134,23 @@ function AuthModal({ defaultMode, onClose }) {
 
   const switchMode = m => { setMode(m); setError(''); setPassword(''); setConfirm('') }
 
-  const handleSubmit = e => {
+  const handleSubmit = async (e) => {
     e.preventDefault(); setError('')
     if (!username.trim() || !password.trim()) { setError('Please fill in all fields.'); return }
     if (mode === 'signup' && password !== confirm) { setError('Passwords do not match.'); return }
-    mode === 'signup' ? signup(username.trim()) : login(username.trim())
+    try {
+      if (mode === 'signup') {
+        await signup({ username: username.trim(), password })
+        toast.success('Account created successfully!')
+      } else {
+        await login({ username: username.trim(), password })
+        toast.success('Logged in successfully!')
+      }
+      onClose()
+    } catch (err) {
+      const message = err?.response?.data?.detail || 'Authentication failed. Please try again.'
+      setError(message)
+    }
   }
 
   return (
