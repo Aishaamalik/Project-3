@@ -3,7 +3,6 @@ import { Menu, X, Settings, Keyboard, LogOut } from 'lucide-react'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import MoonLogo from './MoonLogo'
-import MoonPhase from './MoonPhase'
 import KeyboardShortcutsModal from './KeyboardShortcutsModal'
 import { useAuth } from '../context/AuthContext'
 import styles from './Navbar.module.css'
@@ -53,7 +52,6 @@ export default function Navbar() {
           </ul>
 
           <div className={styles.right}>
-            <div className={styles.desktopOnly}><MoonPhase/></div>
             {user && (
               <span className={styles.username}>👤 {user.username}</span>
             )}
