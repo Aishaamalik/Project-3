@@ -22,6 +22,8 @@ class ImageRequest(BaseModel):
     prompt: str
     style: str
     size: str
+    negative_prompt: str = ""
+    seed: int | None = None
 
     @field_validator("prompt")
     @classmethod
@@ -43,6 +45,20 @@ class ImageRequest(BaseModel):
     def validate_size(cls, value: str) -> str:
         if value not in SUPPORTED_SIZES:
             raise ValueError("Invalid size value.")
+        return value
+
+    @field_validator("negative_prompt")
+    @classmethod
+    def validate_negative_prompt(cls, value: str) -> str:
+        return value.strip()
+
+    @field_validator("seed")
+    @classmethod
+    def validate_seed(cls, value: int | None) -> int | None:
+        if value is None:
+            return None
+        if value < 0:
+            raise ValueError("Seed must be a non-negative integer.")
         return value
 
 
@@ -101,8 +117,20 @@ def generate_image(payload: ImageRequest, user=Depends(get_current_user)) -> Ima
         raise HTTPException(status_code=500, detail="CLOUDFLARE_ACCOUNT_ID or CLOUDFLARE_API_TOKEN is missing in environment.")
 
     width, height = [int(dimension) for dimension in payload.size.split("x")]
-    enhanced_prompt = f"{payload.prompt}, {payload.style} style, high quality"
+    enhanced_prompt = (
+        f"{payload.prompt}, {payload.style} style, high quality, "
+        "focused composition matching the prompt exactly, no unrelated objects"
+    )
     endpoint = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}"
+    request_body = {
+        "prompt": enhanced_prompt,
+        "width": width,
+        "height": height,
+    }
+    if payload.negative_prompt:
+        request_body["negative_prompt"] = payload.negative_prompt
+    if payload.seed is not None:
+        request_body["seed"] = payload.seed
 
     try:
         response = requests.post(
@@ -111,11 +139,7 @@ def generate_image(payload: ImageRequest, user=Depends(get_current_user)) -> Ima
                 "Authorization": f"Bearer {api_token}",
                 "Content-Type": "application/json",
             },
-            json={
-                "prompt": enhanced_prompt,
-                "width": width,
-                "height": height,
-            },
+            json=request_body,
             timeout=90,
         )
         response.raise_for_status()

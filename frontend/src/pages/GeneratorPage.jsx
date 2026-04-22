@@ -68,6 +68,11 @@ export default function GeneratorPage() {
 
   const handleGenerate = useCallback(async () => {
     if (!prompt.trim()) { toast.error('Please enter a prompt first'); return }
+    const normalizedSeed = seed.trim()
+    if (normalizedSeed && !/^\d+$/.test(normalizedSeed)) {
+      toast.error('Seed must be a non-negative whole number')
+      return
+    }
     setLoading(true)
     setResults([])
 
@@ -75,7 +80,13 @@ export default function GeneratorPage() {
 
     try {
       const requests = Array.from({ length: count }, () =>
-        generateImage({ prompt, style, size })
+        generateImage({
+          prompt,
+          style,
+          size,
+          negative_prompt: negPrompt.trim(),
+          seed: normalizedSeed ? Number(normalizedSeed) : undefined,
+        })
       )
       const responses = await Promise.all(requests)
 
@@ -85,6 +96,8 @@ export default function GeneratorPage() {
         prompt,
         style,
         size,
+        negativePrompt: negPrompt.trim(),
+        seed: normalizedSeed || null,
         createdAt: new Date(),
       }))
 
@@ -104,7 +117,7 @@ export default function GeneratorPage() {
     } finally {
       setLoading(false)
     }
-  }, [prompt, style, size, batchCount, addToHistory, refreshMe])
+  }, [prompt, style, size, batchCount, negPrompt, seed, addToHistory, refreshMe])
 
   const handleKeyDown = (e) => {
     if (e.key==='Enter' && (e.metaKey || e.ctrlKey)) handleGenerate()
