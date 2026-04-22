@@ -1,0 +1,109 @@
+.page {
+  min-height:calc(100vh - 64px);
+  display:flex; align-items:flex-start; justify-content:center;
+  padding:56px 24px 96px;
+}
+
+.container { width:100%; max-width:740px; display:flex; flex-direction:column; gap:24px; }
+
+.hero { text-align:center; display:flex; flex-direction:column; align-items:center; gap:12px; }
+
+.badge {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:6px 14px; border-radius:999px;
+  background:rgba(220,215,201,0.1); border:1px solid rgba(220,215,201,0.22);
+  color:var(--accent-primary); font-size:12px; font-weight:600;
+  letter-spacing:0.5px; text-transform:uppercase;
+}
+
+.title {
+  font-size:clamp(32px,5vw,52px); font-weight:800;
+  letter-spacing:-1.5px; line-height:1.1; color:var(--text-primary);
+}
+
+.subtitle { font-size:16px; color:var(--text-secondary); max-width:400px; }
+
+.card {
+  border-radius:var(--radius-xl); padding:28px;
+  display:flex; flex-direction:column; gap:18px;
+}
+
+/* Enhancers */
+.enhancers { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+
+.enhancerLabel {
+  display:flex; align-items:center; gap:4px;
+  font-size:11px; font-weight:600; letter-spacing:0.5px;
+  text-transform:uppercase; color:var(--text-muted);
+  flex-shrink:0;
+}
+
+.enhancerChip {
+  padding:4px 12px; border-radius:999px;
+  background:rgba(162,123,92,0.12); border:1px solid rgba(162,123,92,0.24);
+  color:var(--accent-secondary); font-size:12px; font-weight:500;
+  cursor:pointer; transition:all 0.2s; font-family:'Inter',sans-serif;
+}
+.enhancerChip:hover { background:rgba(162,123,92,0.2); border-color:rgba(220,215,201,0.35); }
+
+.controls { display:flex; flex-direction:column; gap:16px; }
+
+/* Batch */
+.batchRow { display:flex; align-items:center; gap:12px; }
+.batchLabel {
+  display:flex; align-items:center; gap:5px;
+  font-size:11px; font-weight:600; letter-spacing:0.5px;
+  text-transform:uppercase; color:var(--text-muted); flex-shrink:0;
+}
+.batchBtns { display:flex; gap:6px; }
+.batchBtn {
+  width:36px; height:32px; border-radius:var(--radius-sm);
+  background:rgba(220,215,201,0.05); border:1px solid var(--border);
+  color:var(--text-secondary); font-size:13px; font-weight:600;
+  cursor:pointer; transition:all 0.2s; font-family:'Inter',sans-serif;
+}
+.batchBtn:hover { background:rgba(220,215,201,0.1); color:var(--text-primary); }
+.batchBtn.batchActive {
+  background:rgba(162,123,92,0.18); border-color:rgba(162,123,92,0.38);
+  color:var(--accent-secondary);
+}
+
+/* Advanced */
+.advancedToggle {
+  display:flex; align-items:center; gap:6px;
+  background:none; border:none; color:var(--text-muted);
+  font-size:12px; font-weight:500; cursor:pointer;
+  font-family:'Inter',sans-serif; padding:0; transition:color 0.2s;
+  align-self:flex-start;
+}
+.advancedToggle:hover { color:var(--text-secondary); }
+
+.advanced { display:flex; flex-direction:column; gap:12px; overflow:hidden; }
+
+.advRow { display:flex; flex-direction:column; gap:6px; }
+.advLabel { font-size:11px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; color:var(--text-muted); }
+.advHint  { font-weight:400; text-transform:none; letter-spacing:0; }
+
+.advTextarea, .advInput {
+  padding:10px 14px; border-radius:var(--radius-sm);
+  background:rgba(220,215,201,0.04); border:1px solid var(--border);
+  color:var(--text-primary); font-family:'Inter',sans-serif; font-size:13px;
+  outline:none; resize:none; transition:border-color 0.2s; width:100%;
+}
+.advTextarea::placeholder, .advInput::placeholder { color:var(--text-muted); }
+.advTextarea:focus, .advInput:focus { border-color:rgba(162,123,92,0.4); }
+
+.hint { text-align:center; font-size:12px; color:var(--text-muted); }
+.hint kbd {
+  background:rgba(255,255,255,0.07); border:1px solid var(--border-hover);
+  border-radius:4px; padding:1px 6px; font-family:inherit; font-size:11px;
+}
+
+/* Batch grid */
+.batchGrid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+
+@media (max-width:640px) {
+  .page { padding:32px 16px 64px; }
+  .card { padding:20px; }
+  .batchGrid { grid-template-columns:1fr; }
+}

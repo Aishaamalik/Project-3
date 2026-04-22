@@ -1,0 +1,15 @@
+.stars { display: flex; gap: 2px; align-items: center; }
+
+.star {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 1px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.star.active { color: var(--accent-primary); }
+.star:disabled { cursor: default; }

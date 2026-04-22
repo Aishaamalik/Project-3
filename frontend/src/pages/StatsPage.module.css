@@ -1,0 +1,99 @@
+.page { min-height:calc(100vh - 64px); padding:48px 24px 96px; }
+.container { max-width:1100px; margin:0 auto; display:flex; flex-direction:column; gap:24px; }
+
+.header { margin-bottom:8px; }
+.title  { font-size:28px; font-weight:700; letter-spacing:-0.5px; }
+.subtitle { font-size:14px; color:var(--text-muted); margin-top:4px; }
+
+/* Stat cards */
+.grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+
+.statCard {
+  background:var(--bg-secondary);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:20px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  cursor:default;
+  transition:border-color 0.2s;
+}
+.statCard:hover { border-color:rgba(220,215,201,0.24); }
+
+.statIcon {
+  width:44px; height:44px; border-radius:var(--radius-md);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--accent-primary); flex-shrink:0;
+}
+
+.statBody { display:flex; flex-direction:column; gap:2px; }
+.statValue { font-size:26px; font-weight:700; letter-spacing:-0.5px; color:var(--text-primary); }
+.statLabel { font-size:12px; color:var(--text-muted); font-weight:500; }
+.statSub   { font-size:11px; color:var(--text-muted); margin-top:2px; }
+
+/* Row layout */
+.row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+
+/* Panel */
+.panel { border-radius:var(--radius-xl); padding:24px; }
+
+.panelHeader { display:flex; align-items:center; gap:8px; margin-bottom:20px; }
+.panelIcon   { color:var(--accent-primary); }
+.panelTitle  { font-size:15px; font-weight:600; }
+
+/* Bars */
+.bars { display:flex; flex-direction:column; gap:12px; }
+.barRow { display:grid; grid-template-columns:90px 1fr 28px; align-items:center; gap:10px; }
+.barLabel { font-size:12px; color:var(--text-secondary); text-transform:capitalize; }
+.barTrack { height:6px; background:rgba(220,215,201,0.1); border-radius:3px; overflow:hidden; }
+.barFill  { height:100%; background:var(--gradient-moon); border-radius:3px; }
+.barCount { font-size:12px; color:var(--text-muted); text-align:right; }
+
+/* Tag cloud */
+.tagCloud { display:flex; flex-wrap:wrap; gap:8px; }
+.tagChip {
+  padding:5px 12px; border-radius:999px;
+  background:rgba(220,215,201,0.08); border:1px solid rgba(220,215,201,0.16);
+  color:var(--accent-primary); font-weight:500; cursor:default;
+  transition:all 0.2s;
+}
+.tagChip:hover { background:rgba(220,215,201,0.14); }
+.tagCount { color:var(--text-muted); font-size:10px; margin-left:4px; }
+
+.empty { color:var(--text-muted); font-size:13px; }
+
+/* Heatmap */
+.heatmap {
+  display:grid;
+  grid-template-columns:repeat(28,1fr);
+  gap:4px;
+}
+.heatCell {
+  aspect-ratio:1;
+  border-radius:3px;
+  background:var(--gradient-moon);
+  cursor:default;
+  transition:transform 0.15s;
+}
+.heatLegend {
+  display:flex; align-items:center; gap:4px;
+  margin-top:10px; font-size:11px; color:var(--text-muted);
+}
+.heatLegend .heatCell { width:14px; height:14px; flex-shrink:0; }
+
+/* Recent */
+.recentGrid { display:grid; grid-template-columns:repeat(6,1fr); gap:10px; }
+.recentCard { border-radius:var(--radius-md); overflow:hidden; position:relative; aspect-ratio:1; cursor:pointer; }
+.recentImg  { width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.3s; }
+.recentCard:hover .recentImg { transform:scale(1.08); }
+.recentOverlay {
+  position:absolute; inset:0; background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 50%);
+  display:flex; align-items:flex-end; padding:8px; opacity:0; transition:opacity 0.2s;
+}
+.recentCard:hover .recentOverlay { opacity:1; }
+.recentStyle { font-size:10px; color:rgba(255,255,255,0.8); font-weight:600; text-transform:capitalize; }
+
+@media (max-width:1024px) { .grid { grid-template-columns:repeat(2,1fr); } .recentGrid { grid-template-columns:repeat(4,1fr); } }
+@media (max-width:768px)  { .row { grid-template-columns:1fr; } .heatmap { grid-template-columns:repeat(14,1fr); } }
+@media (max-width:480px)  { .grid { grid-template-columns:1fr 1fr; } .recentGrid { grid-template-columns:repeat(3,1fr); } }
