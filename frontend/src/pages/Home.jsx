@@ -61,7 +61,7 @@ function Home() {
               rows={4}
               value={prompt}
               onChange={(event) => setPrompt(event.target.value)}
-              placeholder="e.g. Futuristic city skyline at sunset"
+              placeholder="A modern city skyline at sunset"
               className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 sm:text-base"
             />
           </div>

@@ -49,7 +49,7 @@ export default function CollectionsPage() {
               exit={{ opacity:0, y:-10, height:0 }} transition={{ duration:0.25 }}>
               <input
                 className={styles.createInput}
-                placeholder="Collection name..."
+                placeholder="John Doe Collection"
                 value={newName}
                 onChange={e => setNewName(e.target.value)}
                 onKeyDown={e => { if(e.key==='Enter') handleCreate(); if(e.key==='Escape') setCreating(false) }}

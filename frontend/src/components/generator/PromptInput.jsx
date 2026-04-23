@@ -16,7 +16,7 @@ export default function PromptInput({ value, onChange, suggestions }) {
         <Moon size={18} className={styles.icon} />
         <textarea
           className={styles.textarea}
-          placeholder="Describe your moonlit vision..."
+          placeholder="Describe your image idea"
           value={value}
           onChange={e => onChange(e.target.value)}
           onFocus={() => setFocused(true)}

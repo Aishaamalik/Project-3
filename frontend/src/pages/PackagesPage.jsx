@@ -79,6 +79,98 @@ export default function PackagesPage() {
     }
   }
 
+  if (selectedPackage) {
+    return (
+      <main className={styles.page}>
+        <section className={`${styles.container} ${styles.paymentScreen}`}>
+          <div className={styles.checkoutHeader}>
+            <div>
+              <h1>Payment Procedure</h1>
+              <p className={styles.paymentSubtext}>Complete checkout to activate {selectedPackage.name}.</p>
+            </div>
+            <button type="button" className={styles.ghostBtn} onClick={resetCheckout}>
+              Back to Packages
+            </button>
+          </div>
+
+          <div className={styles.paymentLayout}>
+            <aside className={styles.procedureCard}>
+              <h2>Steps</h2>
+              <ol className={styles.procedureList}>
+                <li>Review package details and total amount.</li>
+                <li>Fill in your test card details.</li>
+                <li>Confirm payment to add tokens.</li>
+              </ol>
+              <div className={styles.summary}>
+                <p className={styles.summaryTitle}>{selectedPackage.name}</p>
+                <p>{selectedPackage.tokens} tokens</p>
+                <p className={styles.summaryPrice}>${(selectedPackage.price_cents / 100).toFixed(2)}</p>
+              </div>
+            </aside>
+
+            <section className={styles.checkout}>
+              <h2>Card Details</h2>
+              <div className={styles.formGrid}>
+                <label className={styles.field}>
+                  Name on card
+                  <input
+                    type="text"
+                    value={cardName}
+                    onChange={(e) => setCardName(e.target.value)}
+                    placeholder="John Doe"
+                    autoComplete="cc-name"
+                  />
+                </label>
+
+                <label className={styles.field}>
+                  Card number
+                  <input
+                    type="text"
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                    placeholder="4242 4242 4242 4242"
+                    autoComplete="cc-number"
+                  />
+                </label>
+
+                <label className={styles.field}>
+                  Expiry (MM/YY)
+                  <input
+                    type="text"
+                    value={expiry}
+                    onChange={(e) => setExpiry(formatExpiry(e.target.value))}
+                    placeholder="MM/YY"
+                    autoComplete="cc-exp"
+                  />
+                </label>
+
+                <label className={styles.field}>
+                  CVV
+                  <input
+                    type="password"
+                    value={cvv}
+                    onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    placeholder="123"
+                    autoComplete="cc-csc"
+                  />
+                </label>
+              </div>
+
+              <button
+                type="button"
+                className={styles.payBtn}
+                disabled={payingId === selectedPackage.id}
+                onClick={() => handleSelectPackage(selectedPackage.id)}
+              >
+                {payingId === selectedPackage.id ? 'Processing Payment...' : `Pay $${(selectedPackage.price_cents / 100).toFixed(2)}`}
+              </button>
+            </section>
+          </div>
+        </section>
+      </main>
+    )
+  }
+
   return (
     <main className={styles.page}>
       <section className={styles.container}>
@@ -99,78 +191,6 @@ export default function PackagesPage() {
             </article>
           ))}
         </div>
-
-        {selectedPackage ? (
-          <section className={styles.checkout}>
-            <div className={styles.checkoutHeader}>
-              <h2>Card Payment</h2>
-              <button type="button" className={styles.ghostBtn} onClick={resetCheckout}>
-                Close
-              </button>
-            </div>
-
-            <div className={styles.summary}>
-              <p className={styles.summaryTitle}>{selectedPackage.name}</p>
-              <p>{selectedPackage.tokens} tokens</p>
-              <p className={styles.summaryPrice}>${(selectedPackage.price_cents / 100).toFixed(2)}</p>
-            </div>
-
-            <div className={styles.formGrid}>
-              <label className={styles.field}>
-                Name on card
-                <input
-                  type="text"
-                  value={cardName}
-                  onChange={(e) => setCardName(e.target.value)}
-                  placeholder="Malik Ahmed"
-                  autoComplete="cc-name"
-                />
-              </label>
-
-              <label className={styles.field}>
-                Card number
-                <input
-                  type="text"
-                  value={cardNumber}
-                  onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                  placeholder="4242 4242 4242 4242"
-                  autoComplete="cc-number"
-                />
-              </label>
-
-              <label className={styles.field}>
-                Expiry (MM/YY)
-                <input
-                  type="text"
-                  value={expiry}
-                  onChange={(e) => setExpiry(formatExpiry(e.target.value))}
-                  placeholder="12/28"
-                  autoComplete="cc-exp"
-                />
-              </label>
-
-              <label className={styles.field}>
-                CVV
-                <input
-                  type="password"
-                  value={cvv}
-                  onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                  placeholder="123"
-                  autoComplete="cc-csc"
-                />
-              </label>
-            </div>
-
-            <button
-              type="button"
-              className={styles.payBtn}
-              disabled={payingId === selectedPackage.id}
-              onClick={() => handleSelectPackage(selectedPackage.id)}
-            >
-              {payingId === selectedPackage.id ? 'Processing Payment...' : `Pay $${(selectedPackage.price_cents / 100).toFixed(2)}`}
-            </button>
-          </section>
-        ) : null}
       </section>
     </main>
   )

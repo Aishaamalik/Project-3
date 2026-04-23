@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 import {
   claimFreeTokens,
+  getMe,
   login as loginRequest,
   logout as logoutRequest,
   setAuthToken,
@@ -46,6 +47,12 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const refreshMe = async () => {
+    const data = await getMe()
+    setUser(data.user)
+    return data.user
+  }
+
   const claimWelcomeTokens = async () => {
     const data = await claimFreeTokens()
     setUser((prev) => (prev ? { ...prev, tokens: data.tokens, claimed_free_tokens: data.claimed_free_tokens } : prev))
@@ -60,6 +67,7 @@ export function AuthProvider({ children }) {
       login,
       signup,
       logout,
+      refreshMe,
       showClaimModal,
       setShowClaimModal,
       claimWelcomeTokens,

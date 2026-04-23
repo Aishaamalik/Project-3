@@ -92,7 +92,7 @@ export default function SettingsPage() {
           <Row label="Negative Prompt" sub="What to avoid in generations">
             <textarea
               className={styles.textarea}
-              placeholder="e.g. blurry, low quality, watermark..."
+              placeholder="blurry, low quality, watermark"
               value={settings.negativePrompt}
               onChange={e => updateSettings({ negativePrompt:e.target.value })}
               rows={2}

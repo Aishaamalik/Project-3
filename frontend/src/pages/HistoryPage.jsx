@@ -57,7 +57,7 @@ export default function HistoryPage() {
             <Search size={15} className={styles.searchIcon} />
             <input
               className={styles.searchInput}
-              placeholder="Search your creations..."
+              placeholder="Search creations"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />

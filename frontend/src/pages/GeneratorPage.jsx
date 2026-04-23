@@ -192,12 +192,12 @@ export default function GeneratorPage() {
                 <div className={styles.advRow}>
                   <label className={styles.advLabel}>Negative Prompt</label>
                   <textarea className={styles.advTextarea} rows={2}
-                    placeholder="What to avoid: blurry, low quality, watermark..."
+                    placeholder="blurry, low quality, watermark"
                     value={negPrompt} onChange={e => setNegPrompt(e.target.value)}/>
                 </div>
                 <div className={styles.advRow}>
                   <label className={styles.advLabel}>Seed <span className={styles.advHint}>(leave blank for random)</span></label>
-                  <input className={styles.advInput} placeholder="e.g. 42"
+                  <input className={styles.advInput} placeholder="42"
                     value={seed} onChange={e => setSeed(e.target.value)}/>
                 </div>
               </motion.div>

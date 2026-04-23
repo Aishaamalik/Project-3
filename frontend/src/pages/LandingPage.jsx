@@ -190,12 +190,12 @@ function AuthModal({ defaultMode, onClose }) {
 
             <div className={styles.field}>
               <label className={styles.label}>Username</label>
-              <input className={styles.input} type="text" placeholder="Enter your username"
+              <input className={styles.input} type="text" placeholder="john.doe@example.com"
                 value={username} onChange={e => setUsername(e.target.value)} autoComplete="username"/>
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Password</label>
-              <input className={styles.input} type="password" placeholder="Enter your password"
+              <input className={styles.input} type="password" placeholder="********"
                 value={password} onChange={e => setPassword(e.target.value)}
                 autoComplete={mode === 'login' ? 'current-password' : 'new-password'}/>
             </div>
@@ -206,7 +206,7 @@ function AuthModal({ defaultMode, onClose }) {
                   initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}>
                   <label className={styles.label}>Confirm Password</label>
-                  <input className={styles.input} type="password" placeholder="Confirm your password"
+                  <input className={styles.input} type="password" placeholder="********"
                     value={confirm} onChange={e => setConfirm(e.target.value)} autoComplete="new-password"/>
                 </motion.div>
               )}
