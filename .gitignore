@@ -1,7 +1,13 @@
-# Environment files
+# Secrets and environment files
 .env
 .env.*
+frontend/.env
+frontend/.env.*
+backend/.env
+backend/.env.*
 !.env.example
+!frontend/.env.example
+!backend/.env.example
 
 # Python
 __pycache__/
@@ -14,16 +20,18 @@ __pycache__/
 .venv/
 venv/
 
-# Node
+# Node/Vite
 node_modules/
 dist/
 build/
+frontend/node_modules/
+frontend/dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# IDE/OS
+# IDE and OS
 .vscode/
 .idea/
 .DS_Store
