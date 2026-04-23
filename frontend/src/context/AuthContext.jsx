@@ -1,7 +1,6 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useMemo, useState } from 'react'
 import {
   claimFreeTokens,
-  getMe,
   login as loginRequest,
   logout as logoutRequest,
   setAuthToken,
@@ -9,37 +8,13 @@ import {
 } from '../services/api'
 
 const AuthContext = createContext(null)
-const STORAGE_KEY = 'dreamcanvas_auth_token'
 
 export function AuthProvider({ children }) {
-  const initialToken = localStorage.getItem(STORAGE_KEY)
   const [user, setUser] = useState(null)
-  const [isLoading, setIsLoading] = useState(Boolean(initialToken))
+  const [isLoading] = useState(false)
   const [showClaimModal, setShowClaimModal] = useState(false)
 
-  useEffect(() => {
-    if (!initialToken) {
-      return
-    }
-
-    setAuthToken(initialToken)
-    getMe()
-      .then((data) => {
-        setUser(data.user)
-        if (!data.user.claimed_free_tokens) {
-          setShowClaimModal(true)
-        }
-      })
-      .catch(() => {
-        localStorage.removeItem(STORAGE_KEY)
-        setAuthToken(null)
-        setUser(null)
-      })
-      .finally(() => setIsLoading(false))
-  }, [initialToken])
-
   const applySession = (token, nextUser) => {
-    localStorage.setItem(STORAGE_KEY, token)
     setAuthToken(token)
     setUser(nextUser)
     if (!nextUser.claimed_free_tokens) {
@@ -65,17 +40,10 @@ export function AuthProvider({ children }) {
     } catch {
       // Ignore network/session errors during logout.
     } finally {
-      localStorage.removeItem(STORAGE_KEY)
       setAuthToken(null)
       setUser(null)
       setShowClaimModal(false)
     }
-  }
-
-  const refreshMe = async () => {
-    const data = await getMe()
-    setUser(data.user)
-    return data.user
   }
 
   const claimWelcomeTokens = async () => {
@@ -92,7 +60,6 @@ export function AuthProvider({ children }) {
       login,
       signup,
       logout,
-      refreshMe,
       showClaimModal,
       setShowClaimModal,
       claimWelcomeTokens,
