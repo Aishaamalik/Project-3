@@ -127,7 +127,7 @@ function CountBadge({ value, suffix, label }) {
 function AuthModal({ defaultMode, onClose }) {
   const { login, signup } = useAuth()
   const [mode, setMode]       = useState(defaultMode || 'login')
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm]   = useState('')
   const [error, setError]       = useState('')
@@ -136,19 +136,19 @@ function AuthModal({ defaultMode, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault(); setError('')
-    if (!username.trim() || !password.trim()) { setError('Please fill in all fields.'); return }
+    if (!email.trim() || !password.trim()) { setError('Please fill in all fields.'); return }
     if (mode === 'signup' && password !== confirm) { setError('Passwords do not match.'); return }
     try {
       if (mode === 'signup') {
-        await signup({ username: username.trim(), password })
-        toast.success('Account created successfully!')
+        await signup({ email: email.trim(), password })
+        toast.success('Verification email sent. Please verify first, then log in.')
       } else {
-        await login({ username: username.trim(), password })
+        await login({ email: email.trim(), password })
         toast.success('Logged in successfully!')
       }
       onClose()
     } catch (err) {
-      const message = err?.response?.data?.detail || 'Authentication failed. Please try again.'
+      const message = err?.response?.data?.detail || err?.message || 'Authentication failed. Please try again.'
       setError(message)
     }
   }
@@ -189,9 +189,9 @@ function AuthModal({ defaultMode, onClose }) {
             </div>
 
             <div className={styles.field}>
-              <label className={styles.label}>Username</label>
-              <input className={styles.input} type="text" placeholder="john.doe@example.com"
-                value={username} onChange={e => setUsername(e.target.value)} autoComplete="username"/>
+              <label className={styles.label}>Email</label>
+              <input className={styles.input} type="email" placeholder="john.doe@example.com"
+                value={email} onChange={e => setEmail(e.target.value)} autoComplete="username"/>
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Password</label>

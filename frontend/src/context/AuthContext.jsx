@@ -1,5 +1,12 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 import {
+  createUserWithEmailAndPassword,
+  deleteUser,
+  sendEmailVerification,
+  signInWithEmailAndPassword,
+  signOut,
+} from 'firebase/auth'
+import {
   claimFreeTokens,
   getMe,
   login as loginRequest,
@@ -7,6 +14,7 @@ import {
   setAuthToken,
   signup as signupRequest,
 } from '../services/api'
+import { firebaseAuth } from '../services/firebase'
 
 const AuthContext = createContext(null)
 
@@ -23,16 +31,35 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const login = async ({ username, password }) => {
-    const data = await loginRequest({ username, password })
+  const login = async ({ email, password }) => {
+    const normalizedEmail = email.trim().toLowerCase()
+    const firebaseCred = await signInWithEmailAndPassword(firebaseAuth, normalizedEmail, password)
+    await firebaseCred.user.reload()
+
+    if (!firebaseCred.user.emailVerified) {
+      await sendEmailVerification(firebaseCred.user)
+      await signOut(firebaseAuth)
+      throw new Error('Please verify your email first. We sent you a new verification link.')
+    }
+
+    const data = await loginRequest({ username: normalizedEmail, password })
     applySession(data.token, data.user)
     return data.user
   }
 
-  const signup = async ({ username, password }) => {
-    const data = await signupRequest({ username, password })
-    applySession(data.token, data.user)
-    return data.user
+  const signup = async ({ email, password }) => {
+    const normalizedEmail = email.trim().toLowerCase()
+    const firebaseCred = await createUserWithEmailAndPassword(firebaseAuth, normalizedEmail, password)
+
+    try {
+      await signupRequest({ username: normalizedEmail, password })
+      await sendEmailVerification(firebaseCred.user)
+      await signOut(firebaseAuth)
+      return { requiresEmailVerification: true }
+    } catch (error) {
+      await deleteUser(firebaseCred.user).catch(() => undefined)
+      throw error
+    }
   }
 
   const logout = async () => {
@@ -41,6 +68,7 @@ export function AuthProvider({ children }) {
     } catch {
       // Ignore network/session errors during logout.
     } finally {
+      await signOut(firebaseAuth).catch(() => undefined)
       setAuthToken(null)
       setUser(null)
       setShowClaimModal(false)
@@ -72,7 +100,7 @@ export function AuthProvider({ children }) {
       setShowClaimModal,
       claimWelcomeTokens,
     }),
-    [user, isLoading, showClaimModal],
+    [user, isLoading, login, signup, logout, refreshMe, showClaimModal, claimWelcomeTokens],
   )
 
   return (

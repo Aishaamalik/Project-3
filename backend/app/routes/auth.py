@@ -28,7 +28,7 @@ class AuthRequest(BaseModel):
 
 
 class AuthResponse(BaseModel):
-    token: str
+    token: str | None = None
     user: dict
 
 
@@ -50,9 +50,8 @@ def signup(payload: AuthRequest):
         user_id = cursor.lastrowid
         conn.commit()
 
-    token = create_session(user_id)
     return {
-        "token": token,
+        "token": None,
         "user": {"id": user_id, "username": payload.username, "tokens": 0, "claimed_free_tokens": False},
     }
 
