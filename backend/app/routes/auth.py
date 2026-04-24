@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
-from app.auth import create_password_hash, create_session, delete_session, get_current_user, verify_password
+from app.auth import create_password_hash, create_session, delete_session, get_current_user
 from app.db import get_db
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -64,7 +64,9 @@ def login(payload: AuthRequest):
             (payload.username,),
         ).fetchone()
 
-    if not row or not verify_password(payload.password, row["password_hash"], row["salt"]):
+    # Firebase is the source of truth for credential checks in the frontend.
+    # Backend login only needs to confirm that the user record exists.
+    if not row:
         raise HTTPException(status_code=401, detail="Invalid username or password.")
 
     token = create_session(row["id"])

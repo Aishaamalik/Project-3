@@ -126,11 +126,12 @@ function CountBadge({ value, suffix, label }) {
 
 /* ── Auth Modal ──────────────────────────────────────────── */
 function AuthModal({ defaultMode, onClose }) {
-  const { login, signup } = useAuth()
+  const { login, signup, requestPasswordReset } = useAuth()
   const [mode, setMode]       = useState(defaultMode || 'login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm]   = useState('')
+  const [isSendingReset, setIsSendingReset] = useState(false)
   const [error, setError]       = useState('')
 
   const switchMode = m => { setMode(m); setError(''); setPassword(''); setConfirm('') }
@@ -151,6 +152,24 @@ function AuthModal({ defaultMode, onClose }) {
     } catch (err) {
       const message = err?.message || getFriendlyAuthError(err)
       setError(message)
+    }
+  }
+
+  const handleForgotPassword = async () => {
+    setError('')
+    if (!email.trim()) {
+      setError('Enter your email first, then click Forgot password.')
+      return
+    }
+
+    try {
+      setIsSendingReset(true)
+      await requestPasswordReset(email)
+      toast.success('Password reset link sent. Please check your email inbox.')
+    } catch (err) {
+      setError(err?.message || getFriendlyAuthError(err, 'Could not send password reset email. Please try again.'))
+    } finally {
+      setIsSendingReset(false)
     }
   }
 
@@ -200,6 +219,16 @@ function AuthModal({ defaultMode, onClose }) {
                 value={password} onChange={e => setPassword(e.target.value)}
                 autoComplete={mode === 'login' ? 'current-password' : 'new-password'}/>
             </div>
+            {mode === 'login' && (
+              <button
+                type="button"
+                className={styles.switchLink}
+                onClick={handleForgotPassword}
+                disabled={isSendingReset}
+              >
+                {isSendingReset ? 'Sending reset link...' : 'Forgot password?'}
+              </button>
+            )}
 
             <AnimatePresence>
               {mode === 'signup' && (

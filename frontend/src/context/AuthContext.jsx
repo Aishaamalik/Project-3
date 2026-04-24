@@ -3,6 +3,7 @@ import {
   createUserWithEmailAndPassword,
   deleteUser,
   sendEmailVerification,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
 } from 'firebase/auth'
@@ -97,6 +98,19 @@ export function AuthProvider({ children }) {
     return data
   }
 
+  const requestPasswordReset = async (email) => {
+    const normalizedEmail = email.trim().toLowerCase()
+    if (!normalizedEmail) {
+      throw new Error('Please enter your email address first.')
+    }
+
+    try {
+      await sendPasswordResetEmail(firebaseAuth, normalizedEmail)
+    } catch (error) {
+      throw new Error(getFriendlyAuthError(error, 'Could not send password reset email. Please try again.'))
+    }
+  }
+
   const value = useMemo(
     () => ({
       user,
@@ -105,11 +119,12 @@ export function AuthProvider({ children }) {
       signup,
       logout,
       refreshMe,
+      requestPasswordReset,
       showClaimModal,
       setShowClaimModal,
       claimWelcomeTokens,
     }),
-    [user, isLoading, login, signup, logout, refreshMe, showClaimModal, claimWelcomeTokens],
+    [user, isLoading, login, signup, logout, refreshMe, requestPasswordReset, showClaimModal, claimWelcomeTokens],
   )
 
   return (
