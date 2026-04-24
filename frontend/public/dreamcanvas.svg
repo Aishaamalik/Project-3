@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="moonGrad" x1="18" y1="14" x2="46" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#DCD7C9" />
+      <stop offset="50%" stop-color="#A27B5C" />
+      <stop offset="100%" stop-color="#3F4E4F" />
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="28" fill="#121416" />
+  <circle cx="32" cy="32" r="24" stroke="rgba(220,215,201,0.35)" stroke-width="2" />
+  <path
+    d="M39.5 16C31.492 16 25 22.492 25 30.5C25 38.508 31.492 45 39.5 45C41.289 45 43.003 44.686 44.599 44.107C41.553 47.586 37.156 49.833 32.25 49.833C22.906 49.833 15.333 42.26 15.333 32.917C15.333 23.573 22.906 16 32.25 16C34.834 16 37.272 16.627 39.42 17.732C39.444 17.732 39.5 16 39.5 16Z"
+    fill="url(#moonGrad)"
+  />
+  <circle cx="47" cy="18" r="1.5" fill="#A27B5C" />
+  <circle cx="16" cy="43" r="1.3" fill="#DCD7C9" />
+  <circle cx="48" cy="40" r="1.1" fill="#DCD7C9" />
+</svg>

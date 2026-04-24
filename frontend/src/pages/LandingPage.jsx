@@ -66,9 +66,9 @@ const TESTIMONIALS = [
 ]
 
 const PRICING = [
-  { plan: 'Free',    price: '$0',   period: '/mo', features: ['50 images / month', '3 art styles', 'Basic prompt tools', 'Gallery access'],                  cta: 'Get Started', highlight: false },
-  { plan: 'Pro',     price: '$12',  period: '/mo', features: ['Unlimited images', 'All 120+ styles', 'Prompt enhancement AI', 'Collections & history', 'Priority generation'], cta: 'Start Free Trial', highlight: true  },
-  { plan: 'Studio',  price: '$39',  period: '/mo', features: ['Everything in Pro', 'Batch generation (x8)', 'API access', 'Team workspace', 'Dedicated support'],             cta: 'Contact Sales', highlight: false },
+  { plan: 'Starter Pack',  price: '$5',  period: '', features: ['200 tokens', 'One-time purchase', 'Great for quick tests'],                     cta: 'Choose Package', highlight: false },
+  { plan: 'Pro Pack',      price: '$10', period: '', features: ['500 tokens', 'One-time purchase', 'Best value for regular creators'],          cta: 'Choose Package', highlight: true  },
+  { plan: 'Ultimate Pack', price: '$20', period: '', features: ['1200 tokens', 'One-time purchase', 'Highest token bundle for heavy generation'], cta: 'Choose Package', highlight: false },
 ]
 
 const SKELETON_BARS = ['100%', '80%', '60%']
@@ -587,8 +587,8 @@ export default function LandingPage() {
           <div className={styles.container}>
             <motion.div {...fadeUp} className={styles.sectionHead}>
               <div className={styles.glassChip}>Pricing</div>
-              <h2 className={styles.sectionTitle}>Simple, transparent pricing</h2>
-              <p className={styles.sectionSub}>Start free, scale when you're ready. No hidden fees.</p>
+              <h2 className={styles.sectionTitle}>Token packages that match checkout</h2>
+              <p className={styles.sectionSub}>Each generated image costs 10 tokens. Buy only what you need.</p>
             </motion.div>
             <div className={styles.pricingGrid}>
               {PRICING.map((p, i) => (
