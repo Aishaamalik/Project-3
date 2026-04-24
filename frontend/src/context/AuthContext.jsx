@@ -15,6 +15,7 @@ import {
   signup as signupRequest,
 } from '../services/api'
 import { firebaseAuth } from '../services/firebase'
+import { getFriendlyAuthError } from '../utils/authErrors'
 
 const AuthContext = createContext(null)
 
@@ -32,33 +33,41 @@ export function AuthProvider({ children }) {
   }
 
   const login = async ({ email, password }) => {
-    const normalizedEmail = email.trim().toLowerCase()
-    const firebaseCred = await signInWithEmailAndPassword(firebaseAuth, normalizedEmail, password)
-    await firebaseCred.user.reload()
+    try {
+      const normalizedEmail = email.trim().toLowerCase()
+      const firebaseCred = await signInWithEmailAndPassword(firebaseAuth, normalizedEmail, password)
+      await firebaseCred.user.reload()
 
-    if (!firebaseCred.user.emailVerified) {
-      await sendEmailVerification(firebaseCred.user)
-      await signOut(firebaseAuth)
-      throw new Error('Please verify your email first. We sent you a new verification link.')
+      if (!firebaseCred.user.emailVerified) {
+        await sendEmailVerification(firebaseCred.user)
+        await signOut(firebaseAuth)
+        throw new Error('Please verify your email first. We sent you a new verification link.')
+      }
+
+      const data = await loginRequest({ username: normalizedEmail, password })
+      applySession(data.token, data.user)
+      return data.user
+    } catch (error) {
+      throw new Error(getFriendlyAuthError(error))
     }
-
-    const data = await loginRequest({ username: normalizedEmail, password })
-    applySession(data.token, data.user)
-    return data.user
   }
 
   const signup = async ({ email, password }) => {
-    const normalizedEmail = email.trim().toLowerCase()
-    const firebaseCred = await createUserWithEmailAndPassword(firebaseAuth, normalizedEmail, password)
-
     try {
-      await signupRequest({ username: normalizedEmail, password })
-      await sendEmailVerification(firebaseCred.user)
-      await signOut(firebaseAuth)
-      return { requiresEmailVerification: true }
+      const normalizedEmail = email.trim().toLowerCase()
+      const firebaseCred = await createUserWithEmailAndPassword(firebaseAuth, normalizedEmail, password)
+
+      try {
+        await signupRequest({ username: normalizedEmail, password })
+        await sendEmailVerification(firebaseCred.user)
+        await signOut(firebaseAuth)
+        return { requiresEmailVerification: true }
+      } catch (error) {
+        await deleteUser(firebaseCred.user).catch(() => undefined)
+        throw error
+      }
     } catch (error) {
-      await deleteUser(firebaseCred.user).catch(() => undefined)
-      throw error
+      throw new Error(getFriendlyAuthError(error, 'Could not create your account. Please try again.'))
     }
   }
 

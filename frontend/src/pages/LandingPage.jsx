@@ -8,6 +8,7 @@ import {
   Shield, Cpu, Palette, Users, TrendingUp, Check
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { getFriendlyAuthError } from '../utils/authErrors'
 import MoonLogo from '../components/MoonLogo'
 import styles from './LandingPage.module.css'
 import imgArchitecture from '../assets/gallery-architecture.jpg'
@@ -148,7 +149,7 @@ function AuthModal({ defaultMode, onClose }) {
       }
       onClose()
     } catch (err) {
-      const message = err?.response?.data?.detail || err?.message || 'Authentication failed. Please try again.'
+      const message = err?.message || getFriendlyAuthError(err)
       setError(message)
     }
   }
