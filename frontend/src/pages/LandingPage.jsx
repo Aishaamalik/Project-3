@@ -209,8 +209,8 @@ function AuthModal({ defaultMode, onClose }) {
             </div>
 
             <div className={styles.field}>
-              <label className={styles.label}>Email</label>
-              <input className={styles.input} type="email" placeholder="john.doe@example.com"
+              <label className={styles.label}>Username</label>
+              <input className={styles.input} type="text" placeholder="johndoe"
                 value={email} onChange={e => setEmail(e.target.value)} autoComplete="username"/>
             </div>
             <div className={styles.field}>
