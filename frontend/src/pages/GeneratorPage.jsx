@@ -91,14 +91,14 @@ export default function GeneratorPage() {
       const responses = await Promise.all(requests)
 
       const newImages = responses.map((response, index) => ({
-        id: Date.now() + index,
+        id: response.generation_id ?? Date.now() + index,
         url: response.image_url,
         prompt,
         style,
         size,
         negativePrompt: negPrompt.trim(),
         seed: normalizedSeed || null,
-        createdAt: new Date(),
+        createdAt: response.created_at ? new Date(response.created_at) : new Date(),
       }))
 
       setResults(newImages)

@@ -89,12 +89,6 @@
 
 .desktopOnly { display:flex; }
 
-@media (max-width:768px) {
-  .links { display:none; }
-  .menuBtn { display:flex; }
-  .desktopOnly { display:none; }
-}
-
 .menuBtn {
   display: none;
   background: none;
@@ -107,6 +101,12 @@
 }
 
 .menuBtn:hover { background: rgba(220,215,201,0.08); }
+
+@media (max-width:768px) {
+  .links { display:none; }
+  .menuBtn { display:flex; }
+  .desktopOnly { display:none; }
+}
 
 .drawer {
   display: flex;

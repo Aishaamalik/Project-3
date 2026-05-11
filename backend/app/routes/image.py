@@ -65,6 +65,8 @@ class ImageRequest(BaseModel):
 class ImageResponse(BaseModel):
     image_url: str
     tokens_left: int
+    generation_id: int
+    created_at: str
 
 
 def _extract_image_data_url(response: requests.Response) -> str:
@@ -154,8 +156,8 @@ def generate_image(payload: ImageRequest, user=Depends(get_current_user)) -> Ima
             "UPDATE users SET tokens = tokens - ? WHERE id = ? AND tokens >= ?",
             (IMAGE_COST, user["id"], IMAGE_COST),
         )
-        conn.commit()
         if updated.rowcount == 0:
+            conn.rollback()
             raise HTTPException(
                 status_code=402,
                 detail={
@@ -163,7 +165,63 @@ def generate_image(payload: ImageRequest, user=Depends(get_current_user)) -> Ima
                     "message": "Enjoying the app? Continue creating amazing images by getting more tokens.",
                 },
             )
+        cursor = conn.execute(
+            """
+            INSERT INTO generations (user_id, image_url, prompt, style, size, negative_prompt, seed)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                user["id"],
+                image_url,
+                payload.prompt,
+                payload.style,
+                payload.size,
+                payload.negative_prompt or "",
+                payload.seed,
+            ),
+        )
+        generation_id = cursor.lastrowid
+        created_at = conn.execute("SELECT created_at FROM generations WHERE id = ?", (generation_id,)).fetchone()["created_at"]
         current_tokens = conn.execute("SELECT tokens FROM users WHERE id = ?", (user["id"],)).fetchone()["tokens"]
+        conn.commit()
 
-    return ImageResponse(image_url=image_url, tokens_left=current_tokens)
+    return ImageResponse(
+        image_url=image_url,
+        tokens_left=current_tokens,
+        generation_id=generation_id,
+        created_at=created_at,
+    )
+
+
+@router.get("/my-images")
+def my_images(limit: int = 200, offset: int = 0, user=Depends(get_current_user)):
+    limit = max(1, min(limit, 500))
+    offset = max(0, offset)
+    with get_db() as conn:
+        rows = conn.execute(
+            """
+            SELECT id, image_url, prompt, style, size, negative_prompt, seed, created_at
+            FROM generations
+            WHERE user_id = ?
+            ORDER BY id DESC
+            LIMIT ? OFFSET ?
+            """,
+            (user["id"], limit, offset),
+        ).fetchall()
+
+    return {
+        "images": [
+            {
+                "id": r["id"],
+                "url": r["image_url"],
+                "prompt": r["prompt"],
+                "style": r["style"],
+                "size": r["size"],
+                "negativePrompt": r["negative_prompt"],
+                "seed": r["seed"],
+                "createdAt": r["created_at"],
+            }
+            for r in rows
+        ]
+    }
 

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { useAuth } from './AuthContext'
+import { getMyImages } from '../services/api'
 
 const AppContext = createContext(null)
 
@@ -67,6 +68,46 @@ export function AppProvider({ children }) {
       setSettings({ ...DEFAULT_SETTINGS, ...parsedSettings })
     } catch {
       setSettings(DEFAULT_SETTINGS)
+    }
+  }, [user?.id])
+
+  useEffect(() => {
+    if (!user?.id) return
+    let cancelled = false
+
+    ;(async () => {
+      try {
+        const data = await getMyImages({ limit: 500, offset: 0 })
+        if (cancelled) return
+        const images = Array.isArray(data?.images) ? data.images : []
+        setHistory((prev) => {
+          const byId = new Map(prev.map((p) => [String(p.id), p]))
+          return images.map((img) => {
+            const existing = byId.get(String(img.id))
+            return {
+              id: img.id,
+              url: img.url,
+              prompt: img.prompt,
+              style: img.style,
+              size: img.size,
+              negativePrompt: img.negativePrompt || '',
+              seed: img.seed ?? null,
+              createdAt: parseDateValue(img.createdAt),
+              // keep client-side metadata if it exists
+              rating: existing?.rating || 0,
+              favorite: Boolean(existing?.favorite),
+              tags: Array.isArray(existing?.tags) ? existing.tags : [],
+              collection: existing?.collection || null,
+            }
+          })
+        })
+      } catch {
+        // keep localStorage fallback already loaded above
+      }
+    })()
+
+    return () => {
+      cancelled = true
     }
   }, [user?.id])
 

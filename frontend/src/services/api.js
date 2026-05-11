@@ -1,9 +1,17 @@
 import axios from 'axios'
 
+const TOKEN_KEY = 'dc_session_token'
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
   timeout: 65000,
 })
+
+// Ensure token is applied even after refresh/HMR before AuthProvider runs.
+const bootToken = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null
+if (bootToken) {
+  api.defaults.headers.common.Authorization = `Bearer ${bootToken}`
+}
 
 export function setAuthToken(token) {
   if (token) {
@@ -15,6 +23,11 @@ export function setAuthToken(token) {
 
 export async function generateImage(data) {
   const response = await api.post('/generate-image', data)
+  return response.data
+}
+
+export async function getMyImages(params = {}) {
+  const response = await api.get('/my-images', { params })
   return response.data
 }
 

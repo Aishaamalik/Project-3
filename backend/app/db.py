@@ -24,6 +24,23 @@ def init_db() -> None:
         )
         conn.execute(
             """
+            CREATE TABLE IF NOT EXISTS generations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                image_url TEXT NOT NULL,
+                prompt TEXT NOT NULL,
+                style TEXT NOT NULL,
+                size TEXT NOT NULL,
+                negative_prompt TEXT NOT NULL DEFAULT '',
+                seed INTEGER,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+            """
+        )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_generations_user_id ON generations(user_id)")
+        conn.execute(
+            """
             CREATE TABLE IF NOT EXISTS sessions (
                 token TEXT PRIMARY KEY,
                 user_id INTEGER NOT NULL,
