@@ -180,6 +180,17 @@
   cursor: not-allowed;
 }
 
+.secureNote {
+  margin-top: 1.5rem;
+  font-size: 0.88rem;
+  color: rgba(244, 240, 232, 0.6);
+}
+
+.secureNote a {
+  color: #d8c3b3;
+  text-decoration: underline;
+}
+
 @media (max-width: 840px) {
   .paymentLayout {
     grid-template-columns: 1fr;

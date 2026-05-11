@@ -52,3 +52,13 @@ export async function selectPackage(packageId) {
   const response = await api.post('/billing/select-package', { package_id: packageId })
   return response.data
 }
+
+export async function createCheckoutSession(packageId) {
+  const response = await api.post('/billing/create-checkout-session', { package_id: packageId })
+  return response.data
+}
+
+export async function getPaymentStatus(sessionId) {
+  const response = await api.get(`/billing/payment-status/${sessionId}`)
+  return response.data
+}

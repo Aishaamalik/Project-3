@@ -68,6 +68,13 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const refreshMe = async () => {
+    try {
+      const me = await getMe()
+      setUser(me.user)
+    } catch { /* ignore */ }
+  }
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -79,6 +86,7 @@ export function AuthProvider({ children }) {
       logout,
       requestPasswordReset,
       claimWelcomeTokens,
+      refreshMe,
     }}>
       {children}
     </AuthContext.Provider>

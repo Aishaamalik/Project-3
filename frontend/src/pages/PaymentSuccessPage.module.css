@@ -1,0 +1,71 @@
+.page {
+  min-height: calc(100vh - 120px);
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+}
+
+.card {
+  width: min(100%, 480px);
+  background: rgba(31, 42, 43, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.card h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.card p {
+  margin: 0;
+  color: rgba(244, 240, 232, 0.82);
+  line-height: 1.55;
+}
+
+.card code {
+  font-size: 0.8rem;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.15rem 0.4rem;
+  border-radius: 6px;
+  word-break: break-all;
+}
+
+.spinner {
+  color: #a27b5c;
+  animation: spin 1s linear infinite;
+}
+
+.iconSuccess {
+  color: #4ade80;
+}
+
+.iconError {
+  color: #f87171;
+}
+
+.btn {
+  margin-top: 0.5rem;
+  border: none;
+  border-radius: 10px;
+  padding: 0.7rem 1.4rem;
+  background: #a27b5c;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.btn:hover {
+  background: #b8906e;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

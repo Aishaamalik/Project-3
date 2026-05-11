@@ -11,6 +11,8 @@ import CollectionsPage from './pages/CollectionsPage'
 import SettingsPage    from './pages/SettingsPage'
 import LandingPage     from './pages/LandingPage'
 import PackagesPage    from './pages/PackagesPage'
+import PaymentSuccessPage from './pages/PaymentSuccessPage'
+import PaymentCancelPage  from './pages/PaymentCancelPage'
 import ParticleBackground from './components/ParticleBackground'
 import AnimatedOrbs    from './components/AnimatedOrbs'
 import PageTransition  from './components/PageTransition'
@@ -31,6 +33,8 @@ function AnimatedRoutes() {
         <Route path="/stats"       element={<PageTransition><StatsPage/></PageTransition>}/>
         <Route path="/settings"    element={<PageTransition><SettingsPage/></PageTransition>}/>
         <Route path="/packages"    element={<PageTransition><PackagesPage/></PageTransition>}/>
+        <Route path="/payment/success" element={<PageTransition><PaymentSuccessPage/></PageTransition>}/>
+        <Route path="/payment/cancel"  element={<PageTransition><PaymentCancelPage/></PageTransition>}/>
       </Routes>
     </AnimatePresence>
   )
