@@ -150,8 +150,7 @@ function AuthModal({ defaultMode, onClose }) {
       }
       onClose()
     } catch (err) {
-      const message = err?.message || getFriendlyAuthError(err)
-      setError(message)
+      setError(getFriendlyAuthError(err, err?.message || 'Something went wrong.'))
     }
   }
 
@@ -167,7 +166,7 @@ function AuthModal({ defaultMode, onClose }) {
       await requestPasswordReset(email)
       toast.success('Password reset link sent. Please check your email inbox.')
     } catch (err) {
-      setError(err?.message || getFriendlyAuthError(err, 'Could not send password reset email. Please try again.'))
+      setError(getFriendlyAuthError(err, 'Could not send password reset email. Please try again.'))
     } finally {
       setIsSendingReset(false)
     }

@@ -1,9 +1,22 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  deleteUser,
+} from 'firebase/auth'
 import { setAuthToken, login as apiLogin, signup as apiSignup, getMe, logout as apiLogout, claimFreeTokens } from '../services/api'
+import { firebaseAuth } from '../services/firebase'
 
 const AuthContext = createContext(null)
 
 const TOKEN_KEY = 'dc_session_token'
+
+function normalizeIdentifier(raw) {
+  return String(raw || '').trim().toLowerCase()
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -25,16 +38,25 @@ export function AuthProvider({ children }) {
       .catch(() => {
         localStorage.removeItem(TOKEN_KEY)
         setAuthToken(null)
+        firebaseSignOut(firebaseAuth).catch(() => {})
       })
       .finally(() => setIsLoading(false))
   }, [])
 
-  const login = async ({ email: username, password }) => {
-    const data = await apiLogin({ username, password })
+  const login = async ({ email: rawEmail, password }) => {
+    const email = normalizeIdentifier(rawEmail)
+    if (!email.includes('@')) {
+      throw new Error('Enter a valid email address.')
+    }
+    const credential = await signInWithEmailAndPassword(firebaseAuth, email, password)
+    if (!credential.user.emailVerified) {
+      await firebaseSignOut(firebaseAuth)
+      throw new Error('Please verify your email first, then log in.')
+    }
+    const data = await apiLogin({ username: email, password })
     const token = data.token
     localStorage.setItem(TOKEN_KEY, token)
     setAuthToken(token)
-    // fetch fresh user from /me
     const me = await getMe()
     setUser(me.user)
     if (!me.user.claimed_free_tokens) {
@@ -42,20 +64,47 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const signup = async ({ email: username, password }) => {
-    await apiSignup({ username, password })
+  const signup = async ({ email: rawEmail, password }) => {
+    const email = normalizeIdentifier(rawEmail)
+    if (!email.includes('@')) {
+      throw new Error('Enter a valid email address.')
+    }
+    const credential = await createUserWithEmailAndPassword(firebaseAuth, email, password)
+    try {
+      await apiSignup({ username: email, password })
+    } catch (err) {
+      try {
+        await deleteUser(credential.user)
+      } catch {
+        /* best effort */
+      }
+      throw err
+    }
+    try {
+      await sendEmailVerification(credential.user)
+    } finally {
+      await firebaseSignOut(firebaseAuth)
+    }
   }
 
   const logout = async () => {
     try { await apiLogout() } catch { /* ignore */ }
+    try {
+      await firebaseSignOut(firebaseAuth)
+    } catch {
+      /* ignore */
+    }
     localStorage.removeItem(TOKEN_KEY)
     setAuthToken(null)
     setUser(null)
   }
 
-  // kept for API compatibility with LandingPage — not applicable without Firebase
-  const requestPasswordReset = async () => {
-    throw new Error('Password reset is not supported yet. Please contact support.')
+  const requestPasswordReset = async (emailRaw) => {
+    const email = normalizeIdentifier(emailRaw)
+    if (!email.includes('@')) {
+      throw new Error('Enter a valid email address.')
+    }
+    await sendPasswordResetEmail(firebaseAuth, email)
   }
 
   const claimWelcomeTokens = async () => {

@@ -8,7 +8,8 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 class AuthRequest(BaseModel):
-    username: str = Field(min_length=3, max_length=40)
+    # Stored as lowercase; supports email-style usernames used with Firebase Auth.
+    username: str = Field(min_length=3, max_length=254)
     password: str = Field(min_length=6, max_length=120)
 
     @field_validator("username")
