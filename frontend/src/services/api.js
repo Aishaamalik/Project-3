@@ -2,10 +2,36 @@ import axios from 'axios'
 
 const TOKEN_KEY = 'dc_session_token'
 
+const resolvedBaseUrl =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.PROD ? 'https://project-3-u0k7.onrender.com' : 'http://localhost:8000')
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
-  timeout: 65000,
+  baseURL: resolvedBaseUrl,
+  // Render free tier can cold-start (~50s+). Login also performs a follow-up /me call.
+  timeout: 120000,
 })
+
+let didRetryOnceAfterColdStart = false
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const isNetworkish =
+      !error?.response && (error?.code === 'ECONNABORTED' || error?.message === 'Network Error')
+
+    if (isNetworkish && !didRetryOnceAfterColdStart) {
+      didRetryOnceAfterColdStart = true
+      try {
+        return await api.request(error.config)
+      } catch (retryErr) {
+        throw retryErr
+      }
+    }
+
+    throw error
+  },
+)
 
 // Ensure token is applied even after refresh/HMR before AuthProvider runs.
 const bootToken = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null

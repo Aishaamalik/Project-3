@@ -1,3 +1,5 @@
+import os
+
 from dotenv import load_dotenv
 from pathlib import Path
 
@@ -16,9 +18,16 @@ from app.db import init_db
 app = FastAPI(title="Project 3 API")
 init_db()
 
+def _cors_origins() -> list[str]:
+    raw = (os.getenv("CORS_ORIGINS") or "").strip()
+    if not raw:
+        return ["http://localhost:5173", "http://127.0.0.1:5173"]
+    return [origin.strip().rstrip("/") for origin in raw.split(",") if origin.strip()]
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
