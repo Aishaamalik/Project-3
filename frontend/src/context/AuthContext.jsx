@@ -6,6 +6,8 @@ import {
   sendEmailVerification,
   sendPasswordResetEmail,
   deleteUser,
+  reload,
+  onAuthStateChanged,
 } from 'firebase/auth'
 import { setAuthToken, login as apiLogin, signup as apiSignup, getMe, logout as apiLogout, claimFreeTokens } from '../services/api'
 import { firebaseAuth } from '../services/firebase'
@@ -18,29 +20,59 @@ function normalizeIdentifier(raw) {
   return String(raw || '').trim().toLowerCase()
 }
 
+function verificationContinueUrl() {
+  if (typeof window === 'undefined') return undefined
+  return `${window.location.origin}/`
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [showClaimModal, setShowClaimModal] = useState(false)
 
-  // Restore session on mount
+  // Restore session: backend token alone is not enough — must match Firebase user and verified email.
   useEffect(() => {
-    const token = localStorage.getItem(TOKEN_KEY)
-    if (!token) {
-      setIsLoading(false)
-      return
-    }
-    setAuthToken(token)
-    getMe()
-      .then((data) => {
-        setUser(data.user)
-      })
-      .catch(() => {
+    let cancelled = false
+    const unsub = onAuthStateChanged(firebaseAuth, async (fbUser) => {
+      const token = localStorage.getItem(TOKEN_KEY)
+      if (!token) {
+        setAuthToken(null)
+        setUser(null)
+        if (!cancelled) setIsLoading(false)
+        return
+      }
+      if (!fbUser) {
         localStorage.removeItem(TOKEN_KEY)
         setAuthToken(null)
-        firebaseSignOut(firebaseAuth).catch(() => {})
-      })
-      .finally(() => setIsLoading(false))
+        setUser(null)
+        if (!cancelled) setIsLoading(false)
+        return
+      }
+      await reload(fbUser)
+      if (!fbUser.emailVerified) {
+        localStorage.removeItem(TOKEN_KEY)
+        setAuthToken(null)
+        setUser(null)
+        await firebaseSignOut(firebaseAuth)
+        if (!cancelled) setIsLoading(false)
+        return
+      }
+      setAuthToken(token)
+      try {
+        const data = await getMe()
+        if (!cancelled) setUser(data.user)
+      } catch {
+        localStorage.removeItem(TOKEN_KEY)
+        setAuthToken(null)
+        setUser(null)
+        await firebaseSignOut(firebaseAuth).catch(() => {})
+      }
+      if (!cancelled) setIsLoading(false)
+    })
+    return () => {
+      cancelled = true
+      unsub()
+    }
   }, [])
 
   const login = async ({ email: rawEmail, password }) => {
@@ -49,6 +81,7 @@ export function AuthProvider({ children }) {
       throw new Error('Enter a valid email address.')
     }
     const credential = await signInWithEmailAndPassword(firebaseAuth, email, password)
+    await reload(credential.user)
     if (!credential.user.emailVerified) {
       await firebaseSignOut(firebaseAuth)
       throw new Error('Please verify your email first, then log in.')
@@ -80,11 +113,18 @@ export function AuthProvider({ children }) {
       }
       throw err
     }
+    const continueUrl = verificationContinueUrl()
     try {
-      await sendEmailVerification(credential.user)
-    } finally {
-      await firebaseSignOut(firebaseAuth)
+      if (continueUrl) {
+        await sendEmailVerification(credential.user, { url: continueUrl, handleCodeInApp: false })
+      } else {
+        await sendEmailVerification(credential.user)
+      }
+    } catch (e) {
+      await firebaseSignOut(firebaseAuth).catch(() => {})
+      throw e
     }
+    await firebaseSignOut(firebaseAuth)
   }
 
   const logout = async () => {
@@ -104,7 +144,12 @@ export function AuthProvider({ children }) {
     if (!email.includes('@')) {
       throw new Error('Enter a valid email address.')
     }
-    await sendPasswordResetEmail(firebaseAuth, email)
+    const url = verificationContinueUrl()
+    if (url) {
+      await sendPasswordResetEmail(firebaseAuth, email, { url, handleCodeInApp: false })
+    } else {
+      await sendPasswordResetEmail(firebaseAuth, email)
+    }
   }
 
   const claimWelcomeTokens = async () => {
